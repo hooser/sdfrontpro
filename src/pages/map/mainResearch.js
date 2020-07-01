@@ -248,6 +248,8 @@ export default class ListedMapBD extends React.Component{
                
             }
             
+            this.buildLayers();
+
         }).catch(function (error) {
             // console.log(error);
         });
@@ -489,11 +491,6 @@ export default class ListedMapBD extends React.Component{
         let dataSet = new mapv.DataSet(data);
         let pointOptions = {
                     fillStyle: 'rgba(0, 191, 243, 0.7)',
-                    // methods: {
-                    //     click: function (item) {
-                    //         console.log(item);
-                    //     }
-                    // },
                     size: 3,
                     draw: 'simple'
                 };
@@ -502,43 +499,26 @@ export default class ListedMapBD extends React.Component{
 
     //三种图层显示
     buildLayers = (params) => {
-        axios.get({
-            url:'/listed/coordinates',
-            data:{
-                params:params
-            }
-        }).then( (data) => {
-            if(data.features) {
-                //console.log(data.features);
-                let company_type_map = {};
+
+                let randomCount = this.state.companyLon.length;
+                console.log('buildLayers hello!');
                 let pointData = [];
-                data.features.forEach( item => {
-                    let point = new OlGeomPoint(item.geometry.coordinates);
-                    point.applyTransform(getTransform('EPSG:4326', 'EPSG:3857'));
-
-                    //company_type_map
-                    if (item.industrial_type != null) {
-                        let company_type = item.industrial_type;
-                        if (company_type_map.hasOwnProperty(company_type)) {
-                            company_type_map[company_type] += 1;
-                        } else {
-                            company_type_map[company_type] = 0;
-                        }
-                    }
-
+                while (randomCount--) {
                     pointData.push({
-                        geometry: item.geometry,
+                            geometry: {
+                            type: 'Point',
+                            coordinates: [this.state.companyLon[randomCount], this.state.companyLat[randomCount]]
+                        },
                         count: 30 * Math.random()
                     });
-                });
+                }
+
+                console.log(pointData);
 
                 let dataSet = new mapv.DataSet(pointData);
 
                 let pointOptions = {
                     fillStyle: 'rgba(0, 191, 243, 0.7)',
-                    // shadowColor: 'rgba(255, 50, 50, 1)',
-                    // shadowBlur: 30,
-                    // globalCompositeOperation: 'lighter',
                     methods: {
                         click: function (item) {
                             // console.log(item);
@@ -583,18 +563,12 @@ export default class ListedMapBD extends React.Component{
                     size: 13,
                     gradient: { 0.25: "rgb(0,0,255)", 0.55: "rgb(0,255,0)", 0.85: "yellow", 1.0: "rgb(255,0,0)"},
                     max: 100,
-                    // range: [0, 100], // 过滤显示数据范围
-                    // minOpacity: 0.5, // 热力图透明度
-                    // maxOpacity: 1,
                     draw: 'heatmap'
                 };
                 this.heatmapLayer = new mapv.baiduMapLayer(this.map, dataSet, heatmapOptions);
                 this.heatmapLayer.hide();
-                this.setState({company_type_map});
-            }
-        }).catch(function (error) {
-            console.log(error);
-        });
+                // this.setState({company_type_map});
+        
         return null;
     };
 
